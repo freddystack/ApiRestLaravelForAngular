@@ -21,4 +21,19 @@ use Illuminate\Support\Facades\Route;
  */
 
  Route::post('login', [UserController::class, 'login']);
- Route::post('register', [UserController::class, 'register']);
+
+ 
+ Route::group(['prefix' => 'admin' , 'middleware' => ['token.verify', 'admin.verify']] , function(){
+  Route::post('register', [UserController::class, 'register']);
+
+ });
+
+ Route::group(['prefix' => 'reception' , 'middleware' => ['token.verify', 'reception.verify']] , function(){
+    Route::post('register', [UserController::class, 'register']);
+ 
+  });
+  
+  Route::group(['prefix' => 'warehouse' , 'middleware' => ['token.verify', 'warehouse.verify']] , function(){
+    Route::post('register', [UserController::class, 'register']);
+ 
+  });
