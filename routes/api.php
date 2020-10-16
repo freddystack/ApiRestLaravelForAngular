@@ -25,7 +25,10 @@ use Illuminate\Support\Facades\Route;
  
  Route::group(['prefix' => 'admin' , 'middleware' => ['token.verify', 'admin.verify']] , function(){
   Route::post('register', [UserController::class, 'register']);
-
+  Route::get('users', [UserController::class, 'getUsers']);
+  Route::get('user/{name}' , [UserController::class, 'getUser']);
+  Route::put('user/{id}' , [UserController::class, 'updateUser']);
+  Route::delete('user/{id}' , [UserController::class, 'deleteUser']);
  });
 
  Route::group(['prefix' => 'reception' , 'middleware' => ['token.verify', 'reception.verify']] , function(){
