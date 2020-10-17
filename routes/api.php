@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProuctsController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -22,21 +24,36 @@ use Illuminate\Support\Facades\Route;
 
  Route::post('login', [UserController::class, 'login']);
 
- 
+
  Route::group(['prefix' => 'admin' , 'middleware' => ['token.verify', 'admin.verify']] , function(){
-  Route::post('register', [UserController::class, 'register']);
+   // USERS
+   Route::post('register', [UserController::class, 'register']);
   Route::get('users', [UserController::class, 'getUsers']);
   Route::get('user/{name}' , [UserController::class, 'getUser']);
   Route::put('user/{id}' , [UserController::class, 'updateUser']);
   Route::delete('user/{id}' , [UserController::class, 'deleteUser']);
+
+  // PRODUCTS
+  Route::apiResource('products', ProuctsController::class);
+  Route::get('products/{name}', [ProuctsController::class, 'show']);
+
+  // CATEGORIES
+  Route::apiResource('categories' , CategoryController::class);
+  Route::get('categories/{name}', [CategoryController::class , 'show']);
  });
 
+
+
  Route::group(['prefix' => 'reception' , 'middleware' => ['token.verify', 'reception.verify']] , function(){
-    Route::post('register', [UserController::class, 'register']);
- 
+    Route::get('products', [ProuctsController::class , 'index']);
+    Route::get('categories/{name}', [CategoryController::class , 'show']);
+    Route::get('categories', [CategoryController::class , 'index']);
   });
+
+
   
   Route::group(['prefix' => 'warehouse' , 'middleware' => ['token.verify', 'warehouse.verify']] , function(){
-    Route::post('register', [UserController::class, 'register']);
+    Route::post('products', [ProuctsController::class, 'store']);
+    Route::put('products/{id}', [ProuctsController::class, 'update']);
  
   });
