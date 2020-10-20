@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProuctsController;
+use App\Http\Controllers\SalesController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -48,6 +49,9 @@ use Illuminate\Support\Facades\Route;
     Route::get('products', [ProuctsController::class , 'index']);
     Route::get('categories/{name}', [CategoryController::class , 'show']);
     Route::get('categories', [CategoryController::class , 'index']);
+
+    // SELL
+    Route::post('sales', [SalesController::class , 'to_Sell']);
   });
 
 

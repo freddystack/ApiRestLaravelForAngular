@@ -19,6 +19,7 @@ class Products extends Model
        'stock',
        'precio_actual',
        'precio_anterior',
+       'iva',
        'descuento'
     ];
 

@@ -38,7 +38,7 @@ class ProuctsController extends Controller
             'category_name.max' => 'Debe de tener un minimo de 40 caracteres',
             'name.required' => 'Este campo no puede quedar vacio',
             'name.min' => 'Debe de tener un minimo de 10 caracteres',
-            'name.max' => 'Debe de tener un maximo de 30 caracteres',
+            'name.max' => 'Debe de tener un maximo de 50 caracteres',
             'name.unique' => 'El nombre de este producto ya existe',
             'descripcion.required' => 'Este campo es requerido',
             'descripcion.min' => 'Debe de tener un minimo de 10 caracteres',
@@ -53,7 +53,7 @@ class ProuctsController extends Controller
         ];
         $validate = Validator::make($productsToValidate, [
             'category_name' => 'required|min:2|max:40',
-            'name' => 'required|min:5|max:30|unique:products',
+            'name' => 'required|min:5|max:50|unique:products',
             'descripcion' => 'required|min:10|max:70',
             'disponible' => 'required|min:2|max:2',
             'stock' => 'required',
@@ -68,6 +68,7 @@ class ProuctsController extends Controller
             $products->disponible = $request->disponible;
             $products->stock = $request->stock;
             $products->precio_actual = $request->precio_actual;
+            $products->iva = $request->iva;
             $products->imagen = $request->imagen;
 
             if($products->save()){
@@ -120,9 +121,11 @@ class ProuctsController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $productsToUpdate = $request->only('category_name','name','descripcion','disponible','imagen','stock','precio_actual','precio_anterior','descuento');
-        $product = Products::find($id);
-        if(!$product){
+        $productsToUpdate = $request->only('category_name','name','descripcion','disponible','imagen','stock','precio_actual','precio_anterior');
+        $productFound =   DB::table('products')->where('id' , $id)->get();        
+        $discountRequest = $request->only('descuento');
+    
+        if($productFound->isEmpty()){
             return response()->json([
                 'status' => false,
                 'data' => 'Este Producto no existe en los registros'
@@ -137,7 +140,6 @@ class ProuctsController extends Controller
             'descripcion.max' => 'Debe de tener un maximo de 70 caracteres',
             'disponible.min' => 'Debe de tener un minimo y maximo de 2 caracteres',
             'disponible.max' => 'Debe de tener un maximo de 2 caracteres',
-           
             'stock.required' => 'Este campo no puede quedar vacio',
             'precio_actual.required' => 'Este campo no puede quedar vacio',
             'imagen.mimes' => 'Tiene que ser formato jpeg,png,gif',
@@ -150,28 +152,62 @@ class ProuctsController extends Controller
             'disponible' => 'min:2|max:2',
             'stock' => 'required',
             'precio_actual' => 'required',
-           
             'imagen' => 'mimes:jpeg,png,gif',
         ], $messages);
 
         if(!$validate->fails()){
-            $updateProduct = $product->fill($request->all())->save();
+            $priceRequest = $request->only('precio_actual');
+            $priceRequest = (float)$priceRequest['precio_actual'];
+            $productToFill = Products::find($id);
+
+            foreach ($productFound as $clave) {
+                $previusPrice = (float)$clave->precio_anterior;
+            } 
+          
+            if(!$discountRequest == []){
+               $discount = (int)$discountRequest['descuento'];
+               $discount *=  $priceRequest / 100 ;
+               $priceActual = $priceRequest;
+               $priceActual -= $discount;
+               $priceActual = round($priceActual, $precision =2 , $mode = PHP_ROUND_HALF_UP);
+
+                 if((int)$discountRequest['descuento'] === 0){
+                      $priceActual = $previusPrice;
+                      $priceRequest = 0; 
+                 } 
+               
+                $productToFill->precio_actual = $priceActual;
+                $productToFill->precio_anterior = $priceRequest;
+                $productToFill->descuento = (int)$discountRequest['descuento'];
+                $productToFill->save(); 
+
+                return response()->json([
+                    'status' => true,
+                    'data' => 'Se ha actualizado el producto',
+                    'precio actual' => $priceActual,
+                    'precio anterior' => $priceRequest,
+                    'descuento' => (int)$discountRequest['descuento']
+                ], 200);  
+            }
+            $updateProduct = $productToFill->fill($request->all())->save();
             if($updateProduct){
                  return response()->json([
-                     'status' => true,
-                     'data' => 'El producto se ha actualizado'
-                 ], 200);
+                    'status' => true,
+                    'data' => 'Se ha actualizado el produto',
+                
+                  ], 200);
             }else{
-                 return response()->json([
-                     'status' => false,
-                     'data' => 'No se ha podido actualizar el producto'
-                 ], 500);
-            }
+                return response()->json([
+                    'status' => false,
+                    'data' => 'No ha actualizado el produto',
+                    
+                   ], 500);
+            } 
         }else{
             return response()->json([
                 'status' => false,
                 'error' => $validate->errors()
-            ]);
+            ], 400);
         }
     }
 
