@@ -7,6 +7,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -61,3 +62,6 @@ use Illuminate\Support\Facades\Route;
     Route::put('products/{id}', [ProuctsController::class, 'update']);
  
   });
+
+
+ 
